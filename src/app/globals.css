@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-paper text-road-ink antialiased; font-family: Barlow, ui-sans-serif, system-ui, sans-serif; }
+.theme-dark { color-scheme: dark; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+:focus-visible { outline: 3px solid #1f4fff; outline-offset: 2px; }
+.theme-dark :focus-visible { outline-color: #ff9900; }
+
+/* ---- Shopper site: the wayfinding hero. One orchestrated moment: the tangled route straightens into a single line. */
+.route-tangle { stroke-dasharray: 1; stroke-dashoffset: 0; animation: tangle-out 1.1s .5s cubic-bezier(.6,0,.2,1) forwards; }
+.route-straight { stroke-dasharray: 1; stroke-dashoffset: 1; animation: line-in 1s 1s cubic-bezier(.2,.7,.2,1) forwards; }
+.route-pin { opacity: 0; animation: pin-in .4s 1.9s ease-out forwards; }
+@keyframes tangle-out { to { stroke-dashoffset: -1; opacity: 0; } }
+@keyframes line-in { to { stroke-dashoffset: 0; } }
+@keyframes pin-in { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .route-tangle { animation: none; opacity: 0; }
+  .route-straight { animation: none; stroke-dashoffset: 0; }
+  .route-pin { animation: none; opacity: 1; }
+}
+
+@layer components {
+  .card { @apply rounded-xl border border-ink-700 bg-ink-900 p-5; }
+  .btn { @apply inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-accent text-ink-950 hover:bg-accent-soft; }
+  .btn-ghost { @apply btn border border-ink-600 text-slate-200 hover:bg-ink-800; }
+  .btn-danger { @apply btn border border-red-500/40 text-red-300 hover:bg-red-500/10; }
+  .input { @apply w-full rounded-lg border border-ink-600 bg-ink-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-accent; }
+  .label { @apply mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400; }
+  .badge { @apply inline-block rounded-full px-2 py-0.5 text-xs font-medium; }
+  .th { @apply px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-400; }
+  .td { @apply px-3 py-2.5 text-sm; }
+}
