@@ -18,6 +18,13 @@ The app uses **Supabase** (Postgres + Auth) and talks to it with `supabase-js`. 
    `supabase/migrations/0001_init.sql` -> Run. (Or with the Supabase CLI: `supabase link` then `supabase db push`.)
 3. **Auth settings:** Authentication -> Providers -> Email. For quick local testing turn **"Confirm email" off**;
    otherwise new users must click the emailed link before they can sign in (the app handles both).
+   Under Authentication -> URL Configuration set **Site URL** to `NEXT_PUBLIC_SITE_URL` and add
+   `http://localhost:3000/**` (plus your production URL + `/**`) to **Redirect URLs**, or the links in
+   confirmation and password reset emails will be rejected.
+   *Optional, recommended:* so links also work when opened on a different device than the one that requested them,
+   edit Authentication -> Email Templates: in **Confirm signup** use
+   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email` and in **Reset Password** use
+   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery` as the link.
 4. Copy the keys: Project Settings -> API -> `Project URL`, `anon public` key, and `service_role` key.
 5. Configure and run:
 
@@ -36,7 +43,9 @@ whole flow with zero Amazon credentials: Scan niches -> Prepare listing -> Appro
 ### How data access and security work
 
 - **Auth** is Supabase Auth (email + password). The session lives in a cookie that `middleware.ts` refreshes;
-  `/dashboard/*` redirects to `/login` when signed out. A database trigger creates each new user's `Store` and
+  `/dashboard/*` redirects to `/login` when signed out. Links in auth emails land on `/auth/confirm`, which signs the
+  user in and forwards them (to `/dashboard`, or `/reset-password` for password resets). `/forgot-password` sends
+  reset links and the login form can resend confirmation emails. A database trigger creates each new user's `Store` and
   `AutopilotSettings` rows.
 - **Dashboard pages read with the signed-in user's session**, so Postgres **row level security** guarantees a user
   can only ever see their own rows. Browser-side roles are read-only.

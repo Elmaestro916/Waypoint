@@ -28,3 +28,17 @@ export function supabaseServer() {
     },
   });
 }
+
+/** Only same-site relative paths, so a crafted email link can't bounce users to another domain. */
+export function safeNext(next: string | null | undefined, fallback = "/dashboard"): string {
+  return next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : fallback;
+}
+
+/**
+ * Where links in auth emails should land. Supabase only redirects to URLs on its allow list
+ * (Authentication -> URL Configuration -> Redirect URLs), so NEXT_PUBLIC_SITE_URL should match an entry there.
+ */
+export function authCallbackUrl(req: Request, next: string): string {
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/+$/, "");
+  return `${base}/auth/confirm?next=${encodeURIComponent(safeNext(next))}`;
+}

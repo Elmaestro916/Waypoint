@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { supabaseServer } from "@/lib/supabase/server";
+import { authCallbackUrl, supabaseServer } from "@/lib/supabase/server";
 import { HttpError } from "@/lib/auth";
 import { handle } from "@/lib/api";
 
@@ -14,7 +14,7 @@ export const POST = handle(async (req: Request) => {
   const { data, error } = await supabaseServer().auth.signUp({
     email: b.email.toLowerCase(),
     password: b.password,
-    options: { data: { name: b.name ?? null } },
+    options: { data: { name: b.name ?? null }, emailRedirectTo: authCallbackUrl(req, "/dashboard") },
   });
   if (error) throw new HttpError(400, error.message);
   // With "Confirm email" enabled in Supabase (the default) there is no session until the link is clicked.
