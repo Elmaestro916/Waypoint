@@ -69,7 +69,7 @@ The public site at `/` lets anyone search once and see where a product is sold, 
 1. Run `supabase/migrations/0002_shopper.sql`, then `0003_product_pages.sql`, in the Supabase SQL editor (after 0001).
 2. `npm run seed-demo` adds clearly labelled fictional products so you can see the site working. The site shows a "sample data" banner until you remove them (`delete from "Retailer" where demo;`).
 3. Set `ADMIN_EMAILS`, then open `/admin` for clicks by store, searches with no results, source health, and a place to paste each network's earnings report.
-4. Schedule `POST /api/cron/alerts` hourly with `Authorization: Bearer $CRON_SECRET`. It sends price-alert emails (needs `RESEND_API_KEY` and `ALERT_FROM`) and records the daily prices behind each product page's price-history chart, so charts stay empty until it has run on two different days.
+4. Schedule `POST /api/cron/alerts` hourly with `Authorization: Bearer $CRON_SECRET` (the GitHub Actions workflow does this; see "Running the loop automatically"). It sends price-alert emails (needs `RESEND_API_KEY` and `ALERT_FROM`) and records the daily prices behind each product page's price-history chart, so charts stay empty until it has run on two different days.
 5. Every imported product gets a page at `/p/<slug>` with prices by store, price history, and structured data for Google. Products carried only by sample stores are marked noindex and left out of the sitemap.
 
 **Check these before launch (they could not be verified from the build environment)**
@@ -95,6 +95,10 @@ The public site at `/` lets anyone search once and see where a product is sold, 
 
 - Self-hosted: `npm run worker` (every 30 min, `WORKER_INTERVAL_MIN` to change).
 - Serverless: schedule `POST /api/cron/tick` with header `Authorization: Bearer $CRON_SECRET`.
+- **Vercel Hobby** only allows cron jobs once a day, so `vercel.json` runs each job daily and
+  `.github/workflows/cron.yml` (GitHub Actions) runs alerts hourly and the autopilot every 6 hours. Enable it by adding
+  the `APP_URL` and `CRON_SECRET` repository secrets. On Vercel Pro you can instead tighten the schedules in `vercel.json`
+  and delete the workflow.
 
 ## Going live with real Amazon accounts
 

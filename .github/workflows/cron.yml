@@ -1,0 +1,36 @@
+# Vercel Hobby only allows cron jobs once a day (see vercel.json), so this runs the jobs more often.
+# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   APP_URL      e.g. https://your-app.vercel.app (no trailing slash)
+#   CRON_SECRET  same value as CRON_SECRET in Vercel's environment variables
+# Until both are set, runs skip with a notice. Both endpoints are safe to call more than once.
+name: cron
+
+on:
+  schedule:
+    - cron: "5 * * * *"    # hourly: price alerts + price history snapshot
+    - cron: "15 */6 * * *" # every 6 hours: autopilot cycle
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Which job to run"
+        type: choice
+        options: [alerts, tick]
+        default: alerts
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call cron endpoint
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          JOB: ${{ github.event_name == 'workflow_dispatch' && inputs.job || (github.event.schedule == '5 * * * *' && 'alerts' || 'tick') }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice::Set the APP_URL and CRON_SECRET repository secrets to enable scheduled jobs."
+            exit 0
+          fi
+          curl --fail-with-body -sS -X POST "$APP_URL/api/cron/$JOB" \
+            -H "Authorization: Bearer $CRON_SECRET" --max-time 320
